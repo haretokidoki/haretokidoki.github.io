@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build your own Stories</title>
+    <!-- html2canvas untuk fitur download gambar susunan -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --secondary: #ec4899;
+            --bg: #f3f4f6;
+            --text: #1f2937;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h1, h2 { text-align: center; }
+        
+        /* Utility */
+        .hidden { display: none !important; }
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            margin: 10px;
+        }
+        .btn:hover { transform: scale(1.05); }
+        .btn:disabled { background-color: #9ca3af; cursor: not-allowed; transform: none; }
+        .btn-hint { background-color: #f59e0b; font-size: 14px; padding: 5px 10px; margin-bottom: 10px;}
+
+        /* Page 1 */
+        #page-1 { text-align: center; margin-top: 20vh; }
+        .menu-buttons { display: flex; gap: 20px; justify-content: center; margin-top: 30px; }
+        
+        /* Page 2 */
+        #page-2 { width: 100%; max-width: 1000px; display: flex; flex-direction: column; align-items: center; }
+        .game-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+            gap: 20px;
+        }
+        .side-panel {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-height: 300px;
+            align-content: start;
+        }
+        .center-panel {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .drop-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .drop-zone {
+            width: 100px;
+            height: 100px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #cbd5e1;
+            position: relative;
+        }
+        .draggable-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: grab;
+            user-select: none;
+        }
+        .draggable-img:active { cursor: grabbing; }
+
+        /* Page 3 */
+        #page-3 { width: 100%; max-width: 1000px; margin-top: 20px; }
+        .instruction-container {
+            display: flex;
+            gap: 30px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .left-result { flex: 1; border-right: 2px solid #e5e7eb; padding-right: 20px; }
+        .left-result img { width: 100%; border-radius: 8px; }
+        .right-instruction { flex: 1; font-size: 18px; line-height: 1.6; }
+        .example-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+        }
+
+        /* Modal Countdown */
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 12px;
+            text-align: center; box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+        }
+        .modal-actions { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <!-- PAGE 1: Index -->
+    <div id="page-1">
+        <h1>Build your own Stories</h1>
+        <p>Pilih cerita yang ingin kamu susun hari ini!</p>
+        <div class="menu-buttons">
+            <button class="btn" onclick="startStory('beruang', 'Beruang dan Madu')">Beruang dan Madu</button>
+            <button class="btn" onclick="startStory('anjing', 'Anjing yang Bodoh')">Anjing yang Bodoh</button>
+            <button class="btn" onclick="startStory('puncak', 'Naik ke Puncak')">Naik ke Puncak</button>
+        </div>
+    </div>
+
+    <!-- PAGE 2: Drag and Drop -->
+    <div id="page-2" class="hidden">
+        <h2 id="story-title">Judul Cerita</h2>
+        
+        <div class="game-container">
+            <!-- Left Images -->
+            <div class="side-panel" id="left-panel" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+            
+            <!-- Center Board -->
+            <div class="center-panel">
+                <button class="btn btn-hint" onclick="alert('Petunjuk: Tarik gambar dari sisi kiri dan kanan ke dalam kotak bernomor untuk menyusun ceritamu sendiri!')">💡 Petunjuk Menyusun</button>
+                <div class="drop-grid" id="story-board">
+                    <!-- 8 Drop Zones generated via JS -->
+                </div>
+                <button id="btn-confirm" class="btn" disabled onclick="confirmStory()">Simpan & Buat Cerita</button>
+            </div>
+            
+            <!-- Right Images -->
+            <div class="side-panel" id="right-panel" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+        </div>
+    </div>
+
+    <!-- PAGE 3: Instruction -->
+    <div id="page-3" class="hidden">
+        <h2 id="result-title">Judul Cerita</h2>
+        <div class="instruction-container">
+            <div class="left-result">
+                <h3>Susunan Gambar:</h3>
+                <img id="result-image" src="" alt="Hasil Susunan">
+            </div>
+            <div class="right-instruction">
+                <h3>Instruksi Tugas:</h3>
+                <p>Kerja bagus! Kamu telah menyusun alur ceritamu sendiri.</p>
+                <p>Sekarang, buka <b>buku tulis-mu</b>. Tuliskan sebuah cerita berdasarkan urutan gambar yang sudah kamu buat. Cukup tulis <b>1 kalimat</b> untuk setiap gambar.</p>
+                
+                <div class="example-box">
+                    <strong>Contoh penulisan:</strong><br>
+                    1. Pada suatu hari, ada seekor anjing yang berjalan-jalan di kota.<br>
+                    2. Ia menemukan sebuah tulang yang besar dan lezat.<br>
+                    3. ... dan seterusnya.
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn" style="background-color: var(--secondary);" onclick="showResetModal()">Ulangi Permainan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Ulang -->
+    <div id="modal-overlay" class="hidden">
+        <div class="modal-content">
+            <h3>Yakin ingin mengulangi?</h3>
+            <p>Susunan cerita sebelumnya akan hilang.</p>
+            <div class="modal-actions">
+                <button class="btn" style="background-color: #6b7280;" onclick="closeResetModal()">Batal</button>
+                <button id="btn-modal-confirm" class="btn" style="background-color: var(--secondary);" disabled onclick="resetToHome()">Tunggu (3)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let draggedItem = null;
+        let countdownTimer;
+
+        // Inisialisasi Zona Drop
+        function initBoard() {
+            const board = document.getElementById('story-board');
+            board.innerHTML = '';
+            for (let i = 1; i <= 8; i++) {
+                const zone = document.createElement('div');
+                zone.className = 'drop-zone';
+                zone.dataset.index = i;
+                zone.innerText = i;
+                zone.ondragover = allowDrop;
+                zone.ondrop = drop;
+                board.appendChild(zone);
+            }
+        }
+
+        // Memulai Cerita
+        function startStory(prefix, title) {
+            document.getElementById('page-1').classList.add('hidden');
+            document.getElementById('page-2').classList.remove('hidden');
+            document.getElementById('story-title').innerText = title;
+            document.getElementById('result-title').innerText = title;
+            document.getElementById('btn-confirm').disabled = true;
+
+            initBoard();
+
+            // Kumpulkan 8 gambar dan acak
+            let images = [];
+            for (let i = 1; i <= 8; i++) {
+                images.push(`${prefix}${i}.png`);
+            }
+            images = images.sort(() => Math.random() - 0.5);
+
+            const leftPanel = document.getElementById('left-panel');
+            const rightPanel = document.getElementById('right-panel');
+            leftPanel.innerHTML = '';
+            rightPanel.innerHTML = '';
+
+            // Distribusikan ke panel kiri (4) dan kanan (4)
+            images.forEach((src, index) => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.className = 'draggable-img';
+                img.draggable = true;
+                img.id = `img-${index}`;
+                // Fallback jika gambar belum ada/error
+                img.onerror = function() { this.src = 'https://via.placeholder.com/100?text=' + src; };
+                
+                img.ondragstart = function(event) {
+                    draggedItem = event.target;
+                    event.dataTransfer.setData('text/plain', event.target.id);
+                };
+
+                if (index < 4) leftPanel.appendChild(img);
+                else rightPanel.appendChild(img);
+            });
+        }
+
+        // Drag & Drop Logic
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            const target = event.target;
+            
+            // Jika drop di drop-zone kosong
+            if (target.classList.contains('drop-zone') && target.children.length === 0) {
+                target.innerText = ''; // Hapus angka
+                target.appendChild(draggedItem);
+            } 
+            // Jika drop di panel samping
+            else if (target.id === 'left-panel' || target.id === 'right-panel') {
+                target.appendChild(draggedItem);
+            }
+            // Jika drop di drop-zone yang sudah ada isinya (Tukar posisi)
+            else if (target.classList.contains('draggable-img') && target.parentElement.classList.contains('drop-zone')) {
+                const parentZone = target.parentElement;
+                const originalParent = draggedItem.parentElement;
+                
+                parentZone.appendChild(draggedItem);
+                originalParent.appendChild(target);
+            }
+
+            checkCompletion();
+            // Kembalikan angka jika zona kosong
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                if (zone.children.length === 0) zone.innerText = zone.dataset.index;
+            });
+        }
+
+        function checkCompletion() {
+            let isComplete = true;
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                if (zone.children.length === 0) {
+                    isComplete = false;
+                }
+            });
+            document.getElementById('btn-confirm').disabled = !isComplete;
+        }
+
+        // Download & Pindah ke Instruksi
+        function confirmStory() {
+            const boardElement = document.getElementById('story-board');
+            
+            // Menggunakan html2canvas untuk mengambil gambar dari susunan grid
+            html2canvas(boardElement, {backgroundColor: "#ffffff", scale: 2}).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                
+                // Trigger Download
+                const link = document.createElement('a');
+                link.download = 'Susunan_Ceritaku.png';
+                link.href = imgData;
+                link.click();
+
+                // Set image untuk halaman 3
+                document.getElementById('result-image').src = imgData;
+
+                // Pindah Halaman
+                document.getElementById('page-2').classList.add('hidden');
+                document.getElementById('page-3').classList.remove('hidden');
+            });
+        }
+
+        // Logika Modal Hitung Mundur
+        function showResetModal() {
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            const btn = document.getElementById('btn-modal-confirm');
+            btn.disabled = true;
+            let count = 3;
+            btn.innerText = `Tunggu (${count})`;
+
+            countdownTimer = setInterval(() => {
+                count--;
+                if (count <= 0) {
+                    clearInterval(countdownTimer);
+                    btn.disabled = false;
+                    btn.innerText = 'Ya, Ulangi';
+                } else {
+                    btn.innerText = `Tunggu (${count})`;
+                }
+            }, 1000);
+        }
+
+        function closeResetModal() {
+            clearInterval(countdownTimer);
+            document.getElementById('modal-overlay').classList.add('hidden');
+        }
+
+        function resetToHome() {
+            closeResetModal();
+            document.getElementById('page-3').classList.add('hidden');
+            document.getElementById('page-1').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
