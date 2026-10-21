@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Monster Slayer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white overflow-x-hidden w-full h-screen flex flex-col">
+
+    <!-- Screen: Title -->
+    <div id="screen-title" class="screen flex-1 bg-indigo-900 flex flex-col items-center justify-center p-4 fade-in">
+        <div class="text-center bg-indigo-800 p-12 rounded-3xl border-8 border-indigo-600 shadow-2xl max-w-2xl w-full">
+            <div class="text-8xl mb-6">🐍🗡️</div>
+            <h1 class="text-5xl md:text-6xl font-black text-yellow-400 mb-8 drop-shadow-lg tracking-wider font-mono">
+                PYTHON<br/>MONSTER SLAYER
+            </h1>
+            <p class="text-xl text-indigo-200 mb-12">Belajar coding dan kalahkan para monster!</p>
+            <button id="btn-start" class="bg-green-500 hover:bg-green-400 text-white font-bold py-4 px-12 rounded-full text-3xl border-b-8 border-green-700 active:border-b-0 active:mt-8 transition-all hover:scale-105 shadow-xl">
+                MAIN
+            </button>
+        </div>
+    </div>
+
+    <!-- Screen: Character Select -->
+    <div id="screen-char-select" class="screen flex-1 bg-indigo-900 flex flex-col items-center justify-center p-4 hidden fade-in">
+        <div class="bg-indigo-800 p-8 md:p-12 rounded-3xl border-8 border-indigo-600 shadow-2xl max-w-2xl w-full text-center">
+            <h2 class="text-4xl font-black text-yellow-400 mb-8 drop-shadow-lg font-mono">BUAT PAHLAWANMU</h2>
+            
+            <div class="mb-8">
+                <label class="block text-indigo-200 text-xl font-bold mb-4">Pilih avatarmu:</label>
+                <div id="char-options" class="flex flex-wrap justify-center gap-4">
+                    <!-- Characters injected by JS -->
+                </div>
+            </div>
+
+            <div class="mb-10">
+                <label class="block text-indigo-200 text-xl font-bold mb-4">Siapa namamu?</label>
+                <input type="text" id="input-player-name" placeholder="Nama Pahlawan" maxlength="15" class="w-full max-w-xs text-center text-2xl p-3 rounded-xl bg-indigo-900 text-white border-4 border-indigo-500 focus:outline-none focus:border-yellow-400 font-bold" />
+            </div>
+
+            <button id="btn-save-char" class="bg-gray-500 border-gray-700 text-gray-300 cursor-not-allowed font-bold py-4 px-12 rounded-full text-2xl shadow-xl transition-all border-b-8" disabled>
+                Mulai Petualangan!
+            </button>
+        </div>
+    </div>
+
+    <!-- Screen: Levels -->
+    <div id="screen-levels" class="screen flex-1 bg-indigo-900 flex flex-col items-center p-8 hidden fade-in overflow-y-auto">
+        <h2 class="text-4xl font-bold text-white mb-12 text-center drop-shadow-md">Pilih Level</h2>
+        <div id="levels-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl w-full pb-12">
+            <!-- Level buttons injected by JS -->
+        </div>
+    </div>
+
+    <!-- Screen: Instructions -->
+    <div id="screen-instructions" class="screen flex-1 bg-indigo-900 flex flex-col items-center justify-center p-8 hidden fade-in overflow-y-auto">
+        <div class="bg-white rounded-3xl p-8 md:p-12 max-w-2xl w-full shadow-2xl border-8 border-blue-300 relative my-auto">
+            <button id="btn-back-levels" class="absolute top-4 left-4 text-gray-400 hover:text-gray-800 text-xl font-bold">← Kembali</button>
+            <div class="text-center mt-6">
+                <div id="inst-emoji" class="text-6xl mb-4"></div>
+                <h2 id="inst-title" class="text-3xl font-black text-gray-800 mb-2"></h2>
+                <div class="h-1 w-24 bg-blue-500 mx-auto mb-8 rounded-full"></div>
+                
+                <div class="bg-blue-50 rounded-xl p-6 mb-8 text-left border-2 border-blue-100">
+                    <h3 class="text-xl font-bold text-blue-800 mb-2">Pelajaran:</h3>
+                    <p id="inst-lesson" class="text-lg text-gray-700 mb-4"></p>
+
+                    <!-- Kotak Contoh Kode Baru -->
+                    <div id="inst-example-box" class="hidden bg-gray-900 rounded-xl p-4 mb-4 border-2 border-gray-700 shadow-inner">
+                        <p class="text-xs text-gray-400 font-bold mb-2 uppercase tracking-widest">Contoh Kode:</p>
+                        <pre id="inst-example-code" class="text-green-400 font-mono text-lg font-bold whitespace-pre-wrap"></pre>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-blue-800 mb-2">Tujuan:</h3>
+                    <p id="inst-objective" class="text-lg text-gray-700"></p>
+                    
+                    <div class="mt-4 p-4 bg-gray-900 rounded-lg overflow-x-auto">
+                        <p class="text-sm text-gray-400 mb-1">Target Output:</p>
+                        <pre id="inst-target" class="text-green-400 font-mono text-lg font-bold"></pre>
+                    </div>
+                </div>
+
+                <button id="btn-start-battle" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-8 rounded-xl text-2xl shadow-[0_6px_0_rgb(185,28,28)] active:shadow-[0_0px_0_rgb(185,28,28)] active:translate-y-[6px] transition-all">
+                    Mulai Pertarungan! ⚔️
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen: Game Over -->
+    <div id="screen-gameover" class="screen flex-1 bg-red-900 flex flex-col items-center justify-center p-4 text-center hidden fade-in">
+        <div class="text-8xl mb-6">💀</div>
+        <h1 class="text-6xl font-black text-white mb-4">PERMAINAN SELESAI</h1>
+        <p class="text-2xl text-red-200 mb-12">Para monster berhasil mengalahkanmu...</p>
+        <button id="btn-retry" class="bg-white text-red-900 font-bold py-4 px-12 rounded-full text-2xl shadow-xl hover:scale-105 transition-transform">
+            Coba Lagi
+        </button>
+    </div>
+
+    <!-- Screen: Game -->
+    <div id="screen-game" class="screen hidden w-full flex-1 flex flex-col bg-gray-900 font-sans overflow-hidden fade-in">
+        
+        <!-- Top Half: Adventure Screen -->
+        <div id="game-arena" class="flex-1 bg-green-200 flex flex-col border-b-8 border-gray-800 relative shadow-inner">
+            <!-- Header Bar -->
+            <div class="bg-black/20 p-2 px-6 flex justify-between items-center w-full absolute top-0 z-10">
+                <button id="btn-run-away" class="text-white/80 hover:text-white font-bold text-sm bg-black/20 px-3 py-1 rounded">Kabur</button>
+                <h2 id="game-level-indicator" class="text-black/60 font-black tracking-wider uppercase text-lg">Level 1</h2>
+                <div class="w-20"></div>
+            </div>
+
+            <!-- Banner Misi -->
+            <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-11/12 max-w-3xl z-10">
+                <div class="bg-blue-600 text-white rounded-lg shadow-lg border-2 border-blue-400 p-2 text-center text-sm md:text-base font-bold animate-pulse" style="animation-duration: 3s;">
+                    🎯 Misi: <span id="game-objective-text"></span>
+                </div>
+            </div>
+
+            <!-- Battle Arena -->
+            <div class="flex-1 flex items-center justify-between px-4 sm:px-12 md:px-24 w-full mt-16">
+                <!-- Player Side -->
+                <div class="flex flex-col items-center transform transition-transform hover:scale-110">
+                    <div id="game-player-char" class="text-7xl sm:text-8xl md:text-9xl drop-shadow-xl z-10 animate-bounce" style="animation-duration: 2s;">🧙‍♂️</div>
+                    <div class="bg-black/30 rounded-full w-24 h-6 -mt-4 blur-sm"></div>
+                    <div id="game-player-name" class="mt-4 px-4 py-1 bg-blue-500 text-white font-bold rounded shadow border-2 border-blue-700 max-w-[150px] truncate">Pahlawan</div>
+                    <div id="game-hearts" class="mt-2 flex space-x-1 bg-white/50 px-4 py-2 rounded-full shadow-sm backdrop-blur-sm text-2xl">
+                        <span>❤️</span><span>❤️</span><span>❤️</span>
+                    </div>
+                </div>
+
+                <!-- Objective Center -->
+                <div class="flex flex-col items-center justify-center max-w-xs text-center z-10 hidden sm:flex">
+                    <div class="bg-white/90 p-4 rounded-2xl shadow-xl border-4 border-white overflow-x-auto">
+                        <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Target Output</p>
+                        <pre id="game-target-output" class="font-mono text-lg font-bold text-gray-900 leading-tight text-left"></pre>
+                    </div>
+                    <div class="text-4xl mt-4 text-white/50 animate-pulse">⚡</div>
+                </div>
+
+                <!-- Enemy Side -->
+                <div class="flex flex-col items-center transform transition-transform hover:scale-110">
+                    <div id="game-enemy-emoji" class="text-7xl sm:text-8xl md:text-9xl drop-shadow-xl z-10 animate-pulse" style="animation-duration: 3s;">🟢</div>
+                    <div class="bg-black/30 rounded-full w-24 h-6 -mt-4 blur-sm"></div>
+                    <div id="game-enemy-name" class="mt-4 px-4 py-1 bg-red-500 text-white font-bold rounded shadow border-2 border-red-700">Slime</div>
+                </div>
+            </div>
+            
+            <!-- Mobile Objective -->
+            <div class="sm:hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 px-4 py-2 rounded-xl shadow-lg border-2 border-white z-20 w-11/12 overflow-x-auto text-center flex flex-col items-center">
+                <span class="text-xs text-gray-500 font-bold mb-1">TARGET:</span>
+                <pre id="game-mobile-target" class="font-mono font-bold text-xs text-left leading-tight inline-block"></pre>
+            </div>
+        </div>
+
+        <!-- Bottom Half: Python Compiler -->
+        <div class="flex-[1.2] flex flex-col md:flex-row bg-gray-800">
+            <!-- Code Editor -->
+            <div class="flex-1 flex flex-col p-4 md:border-r border-gray-700 h-1/2 md:h-full overflow-hidden">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <span class="text-blue-400 font-mono text-sm font-bold flex items-center">
+                        <span class="text-lg mr-2">📜</span> script.py
+                    </span>
+                </div>
+                <div class="flex-1 flex bg-gray-900 rounded-xl border border-gray-700 shadow-inner overflow-hidden relative">
+                    <div id="line-numbers" class="bg-gray-800 text-gray-500 font-mono p-4 text-right select-none border-r border-gray-700 overflow-hidden leading-normal min-w-[2.5rem]">
+                        1
+                    </div>
+                    <textarea id="code-editor" placeholder="# Tulis kode Python kamu di sini..." class="flex-1 w-full bg-transparent text-gray-100 font-mono p-4 resize-none focus:outline-none leading-normal" spellcheck="false" wrap="off"></textarea>
+                </div>
+                <button id="btn-run-code" class="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-[0_4px_0_rgb(30,58,138)] active:shadow-[0_0px_0_rgb(30,58,138)] active:translate-y-[4px] transition-all flex justify-center items-center">
+                    ▶️ Jalankan Kode
+                </button>
+            </div>
+
+            <!-- Output & Attack -->
+            <div class="flex-1 flex flex-col p-4 bg-gray-800 h-1/2 md:h-full">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <span class="text-green-400 font-mono text-sm font-bold flex items-center">
+                        <span class="text-lg mr-2">💻</span> Output Terminal
+                    </span>
+                </div>
+                <div id="terminal-output" class="flex-1 w-full bg-black text-green-400 font-mono p-4 rounded-xl overflow-y-auto border border-gray-700 shadow-inner break-all whitespace-pre-wrap"><span class="text-gray-600 italic">Belum ada output...</span></div>
+                <button id="btn-attack" class="mt-4 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-lg shadow-[0_4px_0_rgb(153,27,27)] active:shadow-[0_0px_0_rgb(153,27,27)] active:translate-y-[4px] transition-all flex justify-center items-center text-lg">
+                    ⚔️ Serang! (Kirim)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="custom-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div id="modal-box" class="bg-white rounded-xl p-8 max-w-md w-full text-center border-4 shadow-2xl transform transition-transform scale-95">
+            <h2 id="modal-title" class="text-3xl font-bold mb-4"></h2>
+            <p id="modal-message" class="text-xl text-gray-700 mb-8"></p>
+            <button id="modal-btn" class="px-8 py-3 rounded-full text-white font-bold text-lg shadow-md hover:scale-105 transition-transform"></button>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- LEVEL DATA ---
+        const LEVELS = [
+            {
+                id: 1,
+                title: "Slime Penyapa",
+                explanation: "Dalam Python, kita menggunakan fungsi print() untuk menampilkan teks di layar. Untuk mencetak kata, kamu harus meletakkannya di dalam tanda kutip.",
+                example: "print(\"Halo semuanya!\")\nprint('Aku siap belajar coding!')",
+                objective: "Gunakan print() untuk menampilkan teks persis: 'Hello World!'",
+                expectedOutputDisplay: "Hello World!",
+                validate: (code, output) => output.trim() === "Hello World!",
+                enemyEmoji: "🟢",
+                enemyName: "Slime",
+                bgColor: "bg-green-200"
+            },
+            {
+                id: 2,
+                title: "Laba-laba Berurutan",
+                explanation: "Python membaca kodemu baris demi baris, dari atas ke bawah. Kamu bisa menggunakan banyak perintah print() untuk membuat bentuk! Gunakan spasi di dalam tanda kutip untuk menggeser angka ke kanan.",
+                example: "print(\"  1\")\nprint(\" 2 3\")",
+                objective: "Buat piramida angka persis seperti target output.",
+                expectedOutputDisplay: "   1\n  2 3\n 4 5 6\n7 8 9 10",
+                validate: (code, output) => {
+                    const cleanOutput = output.split('\n').map(l => l.trimEnd()).join('\n').replace(/^\s*\n/g, '').trimEnd();
+                    const expected = "   1\n  2 3\n 4 5 6\n7 8 9 10";
+                    return cleanOutput === expected;
+                },
+                enemyEmoji: "🕷️",
+                enemyName: "Laba-laba",
+                bgColor: "bg-orange-200"
+            },
+            {
+                id: 3,
+                title: "Kepiting Komentar",
+                explanation: "Komentar adalah catatan rahasia di kodemu yang diabaikan oleh Python! Kamu memulai sebuah komentar dengan simbol pagar #.",
+                example: "# Ini adalah komentar rahasia\n# Robot tidak akan membaca ini\nprint(\"Kode ini akan jalan!\")",
+                objective: "Cetak huruf 'SD' dalam bentuk balok. Kamu JUGA HARUS menyertakan komentar persis '#SD CHARIS SOLO' di suatu tempat dalam kodemu.",
+                expectedOutputDisplay: "SSSS DDDD\nS    D   D\nSSSS D   D\n   S D   D\nSSSS DDDD",
+                validate: (code, output) => {
+                    const hasComment = code.toUpperCase().includes("#SD CHARIS SOLO");
+                    const cleanOutput = output.split('\n').map(l => l.trimEnd()).join('\n').replace(/^\s*\n/g, '').trimEnd();
+                    const expected = "SSSS DDDD\nS    D   D\nSSSS D   D\n   S D   D\nSSSS DDDD";
+                    return hasComment && cleanOutput === expected;
+                },
+                enemyEmoji: "🦀",
+                enemyName: "Kepiting",
+                bgColor: "bg-red-300"
+            },
+            {
+                id: 4,
+                title: "Jin Jurnal",
+                explanation: "Kamu bisa mencetak apa saja yang kamu mau! Mari kita menulis entri jurnal. Karena tidak ada satu jawaban yang 'benar', asalkan kamu mencetak tepat 5 baris, kamu lulus!",
+                example: "print(\"1 Januari\")\nprint(\"Saya merasa hebat hari ini\")\nprint(\"Programmer\")\nprint(\"Jangan pernah menyerah!\")\nprint(\"🚀\")",
+                objective: "Cetak tepat 5 baris terpisah: 1) Tanggal hari ini, 2) Perasaanmu, 3) Pekerjaan impian, 4) Pesan untuk dirimu yang lebih tua, 5) Emoji favorit.",
+                expectedOutputDisplay: "24 Oktober\nSaya merasa luar biasa!\nSoftware Engineer\nTerus belajar!\n🚀",
+                validate: (code, output) => {
+                    const lines = output.trim().split('\n').filter(l => l !== "");
+                    return lines.length === 5;
+                },
+                enemyEmoji: "🧞",
+                enemyName: "Jin",
+                bgColor: "bg-purple-300"
+            }
+        ];
+
+        // --- Mock Python Interpreter ---
+        const runMockPython = (codeString) => {
+            let variables = {};
+            let outputLines = [];
+            const lines = codeString.split('\n');
+
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+                let trimmedLine = line.trim();
+                if (!trimmedLine) continue;
+                if (trimmedLine.startsWith('#')) continue;
+
+                const assignMatch = trimmedLine.match(/^([a-zA-Z_]\w*)\s*=\s*(.*)$/);
+                if (assignMatch) {
+                    const varName = assignMatch[1];
+                    let value = assignMatch[2].trim();
+                    if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
+                        value = value.substring(1, value.length - 1);
+                    }
+                    variables[varName] = value;
+                    continue;
+                }
+
+                const printMatch = trimmedLine.match(/^print\((.*)\)$/);
+                if (printMatch) {
+                    let content = printMatch[1].trim();
+                    if ((content.startsWith("'") && content.endsWith("'")) || (content.startsWith('"') && content.endsWith('"'))) {
+                        outputLines.push(content.substring(1, content.length - 1));
+                        continue;
+                    }
+                    if (variables.hasOwnProperty(content)) {
+                        outputLines.push(variables[content]);
+                        continue;
+                    }
+                    if (/^[0-9+\-*/.\s()]+$/.test(content)) {
+                        try {
+                            const result = new Function('return ' + content)();
+                            outputLines.push(String(result));
+                        } catch (e) {
+                            outputLines.push("Error: Ekspresi matematika tidak valid");
+                        }
+                        continue;
+                    }
+                    outputLines.push(`NameError: nama '${content}' tidak didefinisikan`);
+                    continue;
+                }
+                outputLines.push(`SyntaxError: sintaks tidak valid pada baris ${i + 1}`);
+            }
+            return outputLines.join('\n');
+        };
+
+        // --- State Management ---
+        const state = {
+            unlockedLevels: [1],
+            selectedLevelId: null,
+            hearts: 3,
+            playerName: '',
+            playerChar: '🧙‍♂️',
+            hasProfile: false,
+            user: null,
+            db: null,
+            appId: null,
+            modalCallback: null
+        };
+
+        const AVAILABLE_CHARS = ['🧙‍♂️', '🧝‍♀️', '🥷', '🧑‍🚀', '🧛', '🧟'];
+
+        // --- DOM Elements ---
+        const screens = {
+            title: document.getElementById('screen-title'),
+            charSelect: document.getElementById('screen-char-select'),
+            levels: document.getElementById('screen-levels'),
+            instructions: document.getElementById('screen-instructions'),
+            game: document.getElementById('screen-game'),
+            gameover: document.getElementById('screen-gameover'),
+        };
+        const modal = {
+            container: document.getElementById('custom-modal'),
+            box: document.getElementById('modal-box'),
+            title: document.getElementById('modal-title'),
+            message: document.getElementById('modal-message'),
+            btn: document.getElementById('modal-btn')
+        };
+
+        // --- Navigation ---
+        function showScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+            if (screenName === 'levels') renderLevels();
+        }
+
+        // --- Character Setup ---
+        function renderCharSelect() {
+            const container = document.getElementById('char-options');
+            container.innerHTML = '';
+            AVAILABLE_CHARS.forEach(char => {
+                const btn = document.createElement('button');
+                const isSelected = state.playerChar === char;
+                btn.className = `text-5xl md:text-6xl p-4 rounded-xl transition-all ${isSelected ? 'bg-indigo-500 scale-110 shadow-lg border-4 border-yellow-400' : 'bg-indigo-900/50 hover:bg-indigo-700 opacity-70 hover:opacity-100 border-4 border-transparent'}`;
+                btn.innerText = char;
+                btn.onclick = () => {
+                    state.playerChar = char;
+                    renderCharSelect();
+                };
+                container.appendChild(btn);
+            });
+            checkCharForm();
+        }
+
+        function checkCharForm() {
+            const btn = document.getElementById('btn-save-char');
+            if (state.playerName.trim()) {
+                btn.disabled = false;
+                btn.className = "bg-green-500 hover:bg-green-400 text-white border-green-700 active:border-b-0 active:mt-8 hover:scale-105 font-bold py-4 px-12 rounded-full text-2xl shadow-xl transition-all border-b-8";
+            } else {
+                btn.disabled = true;
+                btn.className = "bg-gray-500 border-gray-700 text-gray-300 cursor-not-allowed font-bold py-4 px-12 rounded-full text-2xl shadow-xl transition-all border-b-8";
+            }
+        }
+
+        document.getElementById('input-player-name').addEventListener('input', (e) => {
+            state.playerName = e.target.value;
+            checkCharForm();
+        });
+
+        document.getElementById('btn-save-char').onclick = async () => {
+            state.hasProfile = true;
+            if (state.user && state.db) {
+                try {
+                    const profileRef = doc(state.db, 'artifacts', state.appId, 'users', state.user.uid, 'profile');
+                    await setDoc(profileRef, { name: state.playerName, character: state.playerChar, unlockedLevels: state.unlockedLevels }, { merge: true });
+                } catch(e) { console.warn("Cloud save failed, continuing locally."); }
+            }
+            showScreen('levels');
+        };
+
+        // --- Levels Screen ---
+        function renderLevels() {
+            const container = document.getElementById('levels-container');
+            container.innerHTML = '';
+            LEVELS.forEach(level => {
+                const isUnlocked = state.unlockedLevels.includes(level.id);
+                const btn = document.createElement('button');
+                btn.className = `relative flex flex-col items-center justify-center p-8 rounded-2xl border-4 transition-all duration-300 ${isUnlocked ? 'bg-blue-600 border-blue-400 hover:-translate-y-2 hover:shadow-2xl cursor-pointer text-white shadow-blue-900/50 shadow-lg' : 'bg-gray-700 border-gray-600 cursor-not-allowed text-gray-500 grayscale'}`;
+                btn.innerHTML = `
+                    <div class="text-6xl mb-4">${isUnlocked ? level.enemyEmoji : '🔒'}</div>
+                    <h3 class="text-xl font-bold text-center">Level ${level.id}</h3>
+                    <p class="text-sm mt-2 opacity-80 text-center line-clamp-2">${level.title}</p>
+                    ${!isUnlocked ? '<div class="absolute inset-0 bg-black/20 rounded-xl"></div>' : ''}
+                `;
+                if (isUnlocked) {
+                    btn.onclick = () => {
+                        state.selectedLevelId = level.id;
+                        prepInstructions();
+                        showScreen('instructions');
+                    };
+                }
+                container.appendChild(btn);
+            });
+        }
+
+        // --- Instructions & Game Setup ---
+        function prepInstructions() {
+            const level = LEVELS.find(l => l.id === state.selectedLevelId);
+            document.getElementById('inst-emoji').innerText = level.enemyEmoji;
+            document.getElementById('inst-title').innerText = `Level ${level.id}: ${level.title}`;
+            document.getElementById('inst-lesson').innerText = level.explanation;
+            
+            const exampleBox = document.getElementById('inst-example-box');
+            if (level.example) {
+                exampleBox.classList.remove('hidden');
+                document.getElementById('inst-example-code').innerText = level.example;
+            } else {
+                exampleBox.classList.add('hidden');
+            }
+
+            document.getElementById('inst-objective').innerText = level.objective;
+            document.getElementById('inst-target').innerText = level.expectedOutputDisplay;
+        }
+
+        document.getElementById('btn-back-levels').onclick = () => showScreen('levels');
+        
+        document.getElementById('btn-start-battle').onclick = () => {
+            state.hearts = 3;
+            document.getElementById('code-editor').value = '';
+            document.getElementById('terminal-output').innerHTML = '<span class="text-gray-600 italic">Belum ada output...</span>';
+            prepGameArena();
+            showScreen('game');
+        };
+
+        function prepGameArena() {
+            const level = LEVELS.find(l => l.id === state.selectedLevelId);
+            
+            // Setup Area styling
+            const arena = document.getElementById('game-arena');
+            arena.className = `flex-1 ${level.bgColor} flex flex-col border-b-8 border-gray-800 relative shadow-inner`;
+            
+            document.getElementById('game-level-indicator').innerText = `Level ${level.id}`;
+            document.getElementById('game-player-char').innerText = state.playerChar;
+            document.getElementById('game-player-name').innerText = state.playerName;
+            document.getElementById('game-enemy-emoji').innerText = level.enemyEmoji;
+            document.getElementById('game-enemy-name').innerText = level.enemyName;
+            document.getElementById('game-target-output').innerText = level.expectedOutputDisplay;
+            document.getElementById('game-mobile-target').innerText = level.expectedOutputDisplay;
+            document.getElementById('game-objective-text').innerText = level.objective;
+            
+            updateHearts();
+            updateLineNumbers();
+        }
+
+        function updateHearts() {
+            const container = document.getElementById('game-hearts');
+            container.innerHTML = Array.from({length: 3}).map((_, i) => 
+                `<span class="${i < state.hearts ? 'opacity-100' : 'opacity-20 grayscale'}">❤️</span>`
+            ).join('');
+        }
+
+        // --- Code Editor Line Numbers Logic ---
+        const codeEditor = document.getElementById('code-editor');
+        const lineNumbersElement = document.getElementById('line-numbers');
+        
+        function updateLineNumbers() {
+            const lines = codeEditor.value.split('\n').length;
+            lineNumbersElement.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br/>');
+        }
+        
+        codeEditor.addEventListener('input', updateLineNumbers);
+        codeEditor.addEventListener('scroll', () => {
+            lineNumbersElement.scrollTop = codeEditor.scrollTop;
+        });
+
+        document.getElementById('btn-run-away').onclick = () => showScreen('levels');
+
+        // --- Game Logic ---
+        document.getElementById('btn-run-code').onclick = () => {
+            const code = document.getElementById('code-editor').value;
+            if (!code.trim()) {
+                document.getElementById('terminal-output').innerText = "Silakan tulis kode terlebih dahulu!";
+                return;
+            }
+            const out = runMockPython(code);
+            document.getElementById('terminal-output').innerText = out || "[Tidak ada Output]";
+        };
+
+        document.getElementById('btn-attack').onclick = () => {
+            const code = document.getElementById('code-editor').value;
+            const output = runMockPython(code);
+            document.getElementById('terminal-output').innerText = output || "[Tidak ada Output]";
+            
+            const level = LEVELS.find(l => l.id === state.selectedLevelId);
+            
+            if (level.validate(code, output)) {
+                // Success
+                const nextId = level.id + 1;
+                const willUnlock = LEVELS.some(l => l.id === nextId) && !state.unlockedLevels.includes(nextId);
+                
+                showModal("Monster Terkalahkan! 🎉", `Kamu berhasil mengalahkan ${level.enemyName}!`, true, () => {
+                    if (willUnlock) {
+                        state.unlockedLevels.push(nextId);
+                        if (state.user && state.db) {
+                            const profileRef = doc(state.db, 'artifacts', state.appId, 'users', state.user.uid, 'profile');
+                            setDoc(profileRef, { unlockedLevels: state.unlockedLevels }, { merge: true }).catch(e => console.warn(e));
+                        }
+                    }
+                    showScreen('levels');
+                });
+            } else {
+                // Fail
+                state.hearts--;
+                updateHearts();
+                if (state.hearts <= 0) {
+                    showScreen('gameover');
+                } else {
+                    showModal("Serangan Meleset! 💥", "Kodemu tidak menghasilkan output target yang persis. Kamu kehilangan satu hati!", false, null);
+                }
+            }
+        };
+
+        document.getElementById('btn-retry').onclick = () => {
+            state.hearts = 3;
+            showScreen('levels');
+        };
+
+        // --- Custom Modal ---
+        function showModal(title, message, isSuccess, callback) {
+            modal.title.innerText = title;
+            modal.message.innerText = message;
+            modal.btn.innerText = isSuccess ? 'Lanjut' : 'Aduh!';
+            
+            modal.box.className = `bg-white rounded-xl p-8 max-w-md w-full text-center border-4 ${isSuccess ? 'border-green-500' : 'border-red-500'} shadow-2xl transform transition-transform scale-100`;
+            modal.title.className = `text-3xl font-bold mb-4 ${isSuccess ? 'text-green-600' : 'text-red-600'}`;
+            modal.btn.className = `px-8 py-3 rounded-full text-white font-bold text-lg shadow-md hover:scale-105 transition-transform ${isSuccess ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`;
+            
+            state.modalCallback = callback;
+            modal.container.classList.remove('hidden');
+        }
+
+        modal.btn.onclick = () => {
+            modal.container.classList.add('hidden');
+            if (state.modalCallback) state.modalCallback();
+        };
+
+        // --- Initialization & Firebase ---
+        document.getElementById('btn-start').onclick = () => {
+            if (state.hasProfile) showScreen('levels');
+            else {
+                renderCharSelect();
+                showScreen('charSelect');
+            }
+        };
+
+        const initApp = async () => {
+            try {
+                const fbConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+                if (fbConfigStr === '{}') throw new Error("No config");
+                
+                const app = initializeApp(JSON.parse(fbConfigStr));
+                const auth = getAuth(app);
+                state.db = getFirestore(app);
+                state.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, async (user) => {
+                    state.user = user;
+                    if (user && state.db) {
+                        try {
+                            const profileRef = doc(state.db, 'artifacts', state.appId, 'users', user.uid, 'profile');
+                            const snap = await getDoc(profileRef);
+                            if (snap.exists()) {
+                                const data = snap.data();
+                                if (data.name) state.playerName = data.name;
+                                if (data.character) state.playerChar = data.character;
+                                if (data.unlockedLevels) state.unlockedLevels = data.unlockedLevels;
+                                state.hasProfile = true;
+                            }
+                        } catch (e) { console.warn("Could not load profile", e); }
+                    }
+                });
+            } catch (e) {
+                console.log("Running in offline mode (No database configured)");
+            }
+        };
+
+        // Start
+        initApp();
+
+    </script>
+</body>
+</html>
